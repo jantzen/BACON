@@ -9,8 +9,12 @@ import pandas as pd
 
 def build_chart(nominal_terms, quantitative_term):
     """ This is a helper function for the invent_variables method.
+    Returns a pd DataFrame where columns are Term values, col names are definitions
+    nominal_terms: list of Terms
+    quantitative_term: one Term
     """
     chart = pd.DataFrame()
+    nom_names = []
 
     # set index so we can add columns
     chart.Index = len(nominal_terms[0]._values)
@@ -18,10 +22,17 @@ def build_chart(nominal_terms, quantitative_term):
     # add nominal columns
     for i in range(len(nominal_terms)):
         chart[nominal_terms[i]._definition] = nominal_terms[i]._values
+        nom_names.append(nominal_terms[i]._definition)
 
     # add quant column
     chart[quantitative_term._definition] = quantitative_term._values
 
+    # sort by nominal terms
+    chart = chart.sort_values(nom_names)
+    
+    # reset index
+    chart.index = pd.RangeIndex(len(chart.index))
+    
     return chart
 
 
@@ -39,8 +50,10 @@ def find_blocks(data, depth=1):
 
     # subset of data w/o last d columns
     data = data.iloc[:,:-d]
+    print("find_blocks data", data)
     previous_row = data.iloc[0,:]
 
+    pdb.set_trace()
     for i, row in data.iterrows():
         current_row = row
         if not current_row.equals(previous_row):
@@ -48,7 +61,7 @@ def find_blocks(data, depth=1):
             end = i-1
             blocks.append([start,end])
             start = i
-        previous_row = current_row
+        previous_row = current_row.copy()
     end = len(data) - 1
     blocks.append([start, end])
 
@@ -63,7 +76,9 @@ def constancy(values, threshold=0.5):
 #    else:
 #        return True
     values = np.array(values)
+    print("values", values)
     z_scores = np.array(values - np.mean(values))/np.std(values)
+    print("z_scores", z_scores)
     z_max = np.max(z_scores)
     p = scipy.stats.norm.sf(abs(z_max))
     if p < threshold:
