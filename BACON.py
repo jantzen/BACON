@@ -5,48 +5,45 @@ import pdb
 from scipy import stats
 import pickle
 import scipy.stats
+import pandas as pd
 
 def build_chart(nominal_terms, quantitative_term):
     """ This is a helper function for the invent_variables method.
     """
-    chart = []
+    chart = pd.DataFrame()
 
-    # build header row
-    header = []
-    for term in nominal_terms:
-        header.append(term._definition)
-    
-    header.append(quantitative_term._definition)
+    # set index so we can add columns
+    chart.Index = len(nominal_terms[0]._values)
 
-    # build data rows
-    data = []
-    num_rows = len(nominal_terms[0]._values)
-    for i in range(num_rows):
-        row = []
-        for term in nominal_terms:
-            row.append(term._values[i])
-        row.append(quantitative_term._values[i])
-        data.append(row)
+    # add nominal columns
+    for i in range(len(nominal_terms)):
+        chart[nominal_terms[i]._definition] = nominal_terms[i]._values
 
-    # assemble the chart
-    chart = [header, data]
+    # add quant column
+    chart[quantitative_term._definition] = quantitative_term._values
 
     return chart
 
 
 def find_blocks(data, depth=1):
     """ This is a helper function for the invent_variables method.
-    depth: the number of qualitative variables to ignore when finding blocks
+    It finds "blocks," rows where all the qualitative vars (except the ones we
+    ignore) are the same, and returns start and end index for each block.
+    data:   the chart dataframe
+    depth:  the number of qualitative variables to ignore when finding blocks
     """
     blocks = []
     start = 0
     end = 0
-    d = 1 + depth
-    previous_row = data[0][:-d]
+    d = depth + 1
 
-    for i, row in enumerate(data):
-        current_row = data[i][:-d]
-        if not current_row == previous_row:
+    # subset of data w/o last d columns
+    data = data.iloc[:,:-d]
+    previous_row = data.iloc[0,:]
+
+    for i, row in data.iterrows():
+        current_row = row
+        if not current_row.equals(previous_row):
             # save ranges for prior block, and reset
             end = i-1
             blocks.append([start,end])
@@ -98,7 +95,7 @@ class Term( object ):
         return not self.__eq__(other)
 
 
-class Table( object ):
+class Table( pd.DataFrame ):
     
     """ Attributes:
         terms: a list of Term objects
@@ -113,7 +110,14 @@ class Table( object ):
         invent_variables
     """
 
+    _metadata = ['added_property'] # don't think we need this
+
+    @property
+    def _constructor(self):
+        return Table
+
     def __init__(self, terms=None, laws=None):
+        super().__init__()
         if terms == None:
             self._terms = []
         else:
@@ -228,7 +232,7 @@ class Table( object ):
 
         print(chart)
 
-        blocks = find_blocks(chart[1])
+        blocks = find_blocks(chart)
 
         no_trends = True
         assignment = dict([])

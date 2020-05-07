@@ -6,4 +6,6 @@ table_boyle.load_data('../phil6334/data/ohm_law_data_neon.pkl')
 
 c, i, d, l = (Constant(), Increasing(), Decreasing(), Linear())
 
+print(table_boyle)
+
 table_boyle.invent_variables()
