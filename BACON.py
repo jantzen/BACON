@@ -50,10 +50,8 @@ def find_blocks(data, depth=1):
 
     # subset of data w/o last d columns
     data = data.iloc[:,:-d]
-    print("find_blocks data", data)
     previous_row = data.iloc[0,:]
 
-    #pdb.set_trace()
     for i, row in data.iterrows():
         current_row = row
         if not current_row.equals(previous_row):
@@ -107,6 +105,9 @@ class Term( object ):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        return str(self._definition) + ": " + str(self._values) + "\n"
 
 
 class Table( pd.DataFrame ):
@@ -244,14 +245,13 @@ class Table( pd.DataFrame ):
 
         chart = build_chart(nominal_terms, quantitative_terms[0])
 
-        print("chart", chart)
+        print("chart\n", chart)
 
         blocks = find_blocks(chart)
 
         no_trends = True
         assignment = dict([])
 
-        pdb.set_trace()
         for block in blocks:
             print("block", block)
             data = quantitative_terms[0]._values[block[0]:block[1]]
