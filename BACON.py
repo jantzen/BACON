@@ -53,7 +53,7 @@ def find_blocks(data, depth=1):
     print("find_blocks data", data)
     previous_row = data.iloc[0,:]
 
-    pdb.set_trace()
+    #pdb.set_trace()
     for i, row in data.iterrows():
         current_row = row
         if not current_row.equals(previous_row):
@@ -76,7 +76,6 @@ def constancy(values, threshold=0.5):
 #    else:
 #        return True
     values = np.array(values)
-    print("values", values)
     z_scores = np.array(values - np.mean(values))/np.std(values)
     print("z_scores", z_scores)
     z_max = np.max(z_scores)
@@ -245,28 +244,27 @@ class Table( pd.DataFrame ):
 
         chart = build_chart(nominal_terms, quantitative_terms[0])
 
-        print(chart)
+        print("chart", chart)
 
         blocks = find_blocks(chart)
 
         no_trends = True
         assignment = dict([])
 
+        pdb.set_trace()
         for block in blocks:
-            if no_trends == True:
-                print(block)
-                data = quantitative_terms[0]._values[block[0]:block[1]]
-                print(data)
-                if not constancy(data):
-                    no_trends = False
-                    # build key:
-                    for i in range(block[0],block[1]+1):
-                        key = nominal_terms[-1]._values[i]
-                        value = quantitative_terms[0]._values[i]
-                        assignment.update([(key,value)])
+            print("block", block)
+            data = quantitative_terms[0]._values[block[0]:block[1]]
+            print("data", data)
+            if not constancy(data):
+                # build key:
+                for i in range(block[0],block[1]+1):
+                    key = nominal_terms[-1]._values[i]
+                    value = quantitative_terms[0]._values[i]
+                    assignment.update([(key,value)])
                     
         if not len(assignment) == 0:
-            # build a new term (corresponing to new intrinsic property)
+            # build a new term (corresponding to new intrinsic property)
             new_values = []
             for qual in nominal_terms[-1]._values:
                 new_values.append(assignment[qual])
