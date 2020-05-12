@@ -36,6 +36,11 @@ class OhmsLawTestCase(unittest.TestCase):
         self.assertEqual([0.292,0.376,0.46,0.292,0.376,0.46,0.292,0.376,0.46],
                 self.table_boyle._terms[4]._values, "Should be the \"C\"s")
 
+    def test_find_laws(self):
+        c, i, d, l = (Constant(), Increasing(), Decreasing(), Linear())
+        self.table_boyle.find_laws([c,i,d,l])
+        print("Laws:", self.table_boyle._laws)
+
 
 class SimpleTestCase(unittest.TestCase):
     """
@@ -47,7 +52,6 @@ class SimpleTestCase(unittest.TestCase):
             self.toule._terms[i]._definition = "t" + str(i)
 
 
-#c, i, d, l = (Constant(), Increasing(), Decreasing(), Linear())
 
 
 if __name__ == '__main__':
