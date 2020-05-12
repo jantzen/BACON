@@ -24,10 +24,9 @@ class OhmsLawTestCase(unittest.TestCase):
         self.table_boyle.invent_variables()
    
     def test_invent_variables_1(self):
-        self.assertEqual("intrinsic1", self.table_boyle._terms[3]._definition, "There should \
+        self.assertEqual("intrinsic_t0", self.table_boyle._terms[3]._definition, "There should \
                 be a fourth term now")
 
-    
     def test_invent_variables_2(self):
         self.assertEqual([0.2, 0.2, 0.2, 0.288, 0.288, 0.288, 0.46, 0.46, 0.46],
                 self.table_boyle._terms[3]._values, "First intrinsic should be the \"Z\"s")
@@ -37,6 +36,7 @@ class OhmsLawTestCase(unittest.TestCase):
         self.assertEqual([0.292,0.376,0.46,0.292,0.376,0.46,0.292,0.376,0.46],
                 self.table_boyle._terms[4]._values, "Should be the \"C\"s")
 
+
 class SimpleTestCase(unittest.TestCase):
     """
     Create as many intrinsic properties as you should, with >1 quant var
@@ -45,7 +45,6 @@ class SimpleTestCase(unittest.TestCase):
         self.toule = Table()
         for i in range(3):
             self.toule._terms[i]._definition = "t" + str(i)
-        
 
 
 #c, i, d, l = (Constant(), Increasing(), Decreasing(), Linear())

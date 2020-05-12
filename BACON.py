@@ -279,7 +279,7 @@ class Table( pd.DataFrame ):
                 new_values = []
                 for qual in nominal_terms[(i + 1 ) % num_nom_terms]._values:
                     new_values.append(assignment[qual])
-                definition = 'intrinsic' + str(i + 1) 
+                definition = 'intrinsic_' + chart.columns[0] 
                 new_term = Term(definition, new_values)
                 self.add_term(new_term)
 
