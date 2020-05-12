@@ -47,7 +47,7 @@ def find_blocks(data, depth=1):
     start = 0
     end = 0
     d = depth + 1
-
+    
     # subset of data w/o last d columns
     data = data.iloc[:,:-d]
     previous_row = data.iloc[0,:]
@@ -75,7 +75,6 @@ def constancy(values, threshold=0.5):
 #        return True
     values = np.array(values)
     z_scores = np.array(values - np.mean(values))/np.std(values)
-    print("z_scores", z_scores)
     z_max = np.max(z_scores)
     p = scipy.stats.norm.sf(abs(z_max))
     if p < threshold:
@@ -107,7 +106,7 @@ class Term( object ):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return str(self._definition) + ": " + str(self._values) + "\n"
+        return str(self._definition) + ": " + str(self._values)
 
 
 class Table( pd.DataFrame ):
@@ -245,32 +244,44 @@ class Table( pd.DataFrame ):
 
         chart = build_chart(nominal_terms, quantitative_terms[0])
 
-        print("chart\n", chart)
+        num_nom_terms = len(nominal_terms)
+        
+        for i in range(num_nom_terms):
+            # lexical sort so that i^th col is sorted last
+            nom_names = []
+            for t in range(num_nom_terms):
+                nom_names.append(nominal_terms[( t + i ) % num_nom_terms]._definition)
+            chart = chart.sort_values(nom_names)
+          
+            # reset index
+            chart.index = pd.RangeIndex(len(chart.index))
 
-        blocks = find_blocks(chart)
+            # reorder columns so ordered col is first
+            ordered_col = chart.pop(nominal_terms[i]._definition)
+            chart.insert(0, nominal_terms[i]._definition, ordered_col)
 
-        no_trends = True
-        assignment = dict([])
+            # find blocks
+            blocks = find_blocks(chart, depth = num_nom_terms - 1)
 
-        for block in blocks:
-            print("block", block)
-            data = quantitative_terms[0]._values[block[0]:block[1]]
-            print("data", data)
-            if not constancy(data):
-                # build key:
-                for i in range(block[0],block[1]+1):
-                    key = nominal_terms[-1]._values[i]
-                    value = quantitative_terms[0]._values[i]
-                    assignment.update([(key,value)])
-                    
-        if not len(assignment) == 0:
-            # build a new term (corresponding to new intrinsic property)
-            new_values = []
-            for qual in nominal_terms[-1]._values:
-                new_values.append(assignment[qual])
-            definition = 'intrinsic1'
-            new_term = Term(definition, new_values)
-            self.add_term(new_term)
+            assignment = dict([])
+
+            for block in blocks:
+                data = quantitative_terms[0]._values[block[0]:block[1]]
+                if not constancy(data):
+                    # build key:
+                    for x in range(block[0],block[1]+1):
+                        key = nominal_terms[( i + 1 ) % num_nom_terms]._values[x] 
+                        value = quantitative_terms[0]._values[x]
+                        assignment.update([(key,value)])
+                        
+            if not len(assignment) == 0:
+                # build a new term (corresponding to new intrinsic property)
+                new_values = []
+                for qual in nominal_terms[(i + 1 ) % num_nom_terms]._values:
+                    new_values.append(assignment[qual])
+                definition = 'intrinsic' + str(i + 1) 
+                new_term = Term(definition, new_values)
+                self.add_term(new_term)
 
         
 
