@@ -33,6 +33,7 @@ class OhmsLawTestCase(unittest.TestCase):
         self.assertEqual(5, len(self.table_ohm._terms), "There should be five terms") 
         for term in self.table_ohm._terms:
             print(term)
+        # TODO next assertion is not right. Should be slope of t2 vs t3
         self.assertEqual([0.292,0.376,0.46,0.292,0.376,0.46,0.292,0.376,0.46],
                 self.table_ohm._terms[4]._values, "Should be the \"C\"s")
 
@@ -40,16 +41,9 @@ class OhmsLawTestCase(unittest.TestCase):
         c, i, d, l = (Constant(), Increasing(), Decreasing(), Linear())
         self.table_ohm.find_laws([c,i,d,l])
         print("Laws:", self.table_ohm._laws)
+        for term in self.table_ohm._terms:
+            print(term)
 
-
-class SimpleTestCase(unittest.TestCase):
-    """
-    Create as many intrinsic properties as you should, with >1 quant var
-    """
-    def setUp(self):
-        self.toule = Table()
-        for i in range(3):
-            self.toule._terms[i]._definition = "t" + str(i)
 
 
 

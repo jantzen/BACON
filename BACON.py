@@ -154,7 +154,7 @@ class Table( pd.DataFrame ):
 
     def find_laws(self, rules, n=1, max_iterations=100):
         """ Given a list of Rule objects, returns the first n laws
-        discovered, or None if max_iterations is reached>
+        discovered, or None if max_iterations is reached
         """
     
         for i in range(max_iterations):
@@ -201,9 +201,9 @@ class Table( pd.DataFrame ):
 
     def invent_variables(self):
 
-        """ This method is temporarily restricted to considering two nominal
-        variables and a single quantitative variable. It is also artificially
-        restricted to assuming linear relations amongst the invented variables.
+        """ This method is temporarily restricted to considering a single quantitative variable. 
+        It is also artificially restricted to assuming linear relations amongst the invented 
+        variables, but not for long (see TODO).
         """
         
         # find all of the nominal terms (if any), and stack them up
@@ -218,34 +218,26 @@ class Table( pd.DataFrame ):
                 quantitative_terms.append(term)
 
         if len(quantitative_terms) > 1:
-            raise ValueError("This version of the 'invent_variables' method cannot handle multiple quantitative variables.")
+            raise ValueError("This version of the 'invent_variables' method cannot handle \
+                    multiple quantitative variables.")
 
-#        if len(nominal_terms) == 2:
-
-#            chart = build_chart(nominal_terms, quantitative_terms[0])
-#
-#            start = 0
-#            
-#            # find index range of first block
-#            end = np.where(chart[:,0] == chart[0,0])[0][-1]
-#
-#            # decide whether there is variation within that block
-#            M = np.mean(chart[start:end, 2])
-#            std = np.std(chart[start:end, 2])
-
-        # find blocks
-        # for each block
-            # test for variance
-            # if variance, introduce a new intrinsic variable, fill in values
-            # for all rows, and exit for loop
-
-        # if any new intrinsic variables were added, then for each block
-            # do a linear fit, add both slope and intercept as terms
+        # TODO Make this so
+        # for i in range(number of nominal terms):
+        # if i even:
+            # find blocks
+            # for each block
+                # test for variance
+                # if variance, introduce a new intrinsic variable, fill in values
+        # if i odd AND any new intrinsic variables were just added, then for each block:
+            # call find_laws, make new terms as necessary, e.g. slope and intercept
+            # stitch the new terms together, add to table/chart
 
         chart = build_chart(nominal_terms, quantitative_terms[0])
 
         num_nom_terms = len(nominal_terms)
-        
+       
+       
+        # TODO Probably want to break off for block in blocks chunk into helper function(s).
         for i in range(num_nom_terms):
             # lexical sort so that i^th col is sorted last
             nom_names = []
@@ -283,7 +275,6 @@ class Table( pd.DataFrame ):
                 new_term = Term(definition, new_values)
                 self.add_term(new_term)
 
-        
 
 
 
