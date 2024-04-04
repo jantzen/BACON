@@ -252,7 +252,7 @@ def test_find_blocks():
     assert blocks == [[0,2],[3,5],[6,8]]
 
 def test_constancy():
-    values = np.linspace(0., 10., 5.)
+    values = np.linspace(0., 10., 5)
     assert not constancy(values)
 
     values = np.random.normal(0., size=(10))
