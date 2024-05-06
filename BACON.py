@@ -5,53 +5,61 @@ import pdb
 from scipy import stats
 import pickle
 import scipy.stats
+import pandas as pd
 
 def build_chart(nominal_terms, quantitative_term):
     """ This is a helper function for the invent_variables method.
+    Returns a pd DataFrame where columns are Term values, col names are definitions
+    nominal_terms: list of Terms
+    quantitative_term: one Term
     """
-    chart = []
+    chart = pd.DataFrame()
+    nom_names = []
 
-    # build header row
-    header = []
-    for term in nominal_terms:
-        header.append(term._definition)
+    # set index so we can add columns
+    chart.Index = len(nominal_terms[0]._values)
+
+    # add nominal columns
+    for i in range(len(nominal_terms)):
+        chart[nominal_terms[i]._definition] = nominal_terms[i]._values
+        nom_names.append(nominal_terms[i]._definition)
+
+    # add quant column
+    chart[quantitative_term._definition] = quantitative_term._values
+
+    # sort by nominal terms
+    chart = chart.sort_values(nom_names)
     
-    header.append(quantitative_term._definition)
-
-    # build data rows
-    data = []
-    num_rows = len(nominal_terms[0]._values)
-    for i in range(num_rows):
-        row = []
-        for term in nominal_terms:
-            row.append(term._values[i])
-        row.append(quantitative_term._values[i])
-        data.append(row)
-
-    # assemble the chart
-    chart = [header, data]
-
+    # reset index
+    chart.index = pd.RangeIndex(len(chart.index))
+    
     return chart
 
 
 def find_blocks(data, depth=1):
     """ This is a helper function for the invent_variables method.
-    depth: the number of qualitative variables to ignore when finding blocks
+    It finds "blocks," rows where all the qualitative vars (except the ones we
+    ignore) are the same, and returns start and end index for each block.
+    data:   the chart dataframe
+    depth:  the number of qualitative variables to ignore when finding blocks
     """
     blocks = []
     start = 0
     end = 0
-    d = 1 + depth
-    previous_row = data[0][:-d]
+    d = depth + 1
 
-    for i, row in enumerate(data):
-        current_row = data[i][:-d]
-        if not current_row == previous_row:
+    # subset of data w/o last d columns
+    data = data.iloc[:,:-d]
+    previous_row = data.iloc[0,:]
+
+    for i, row in data.iterrows():
+        current_row = row
+        if not current_row.equals(previous_row):
             # save ranges for prior block, and reset
             end = i-1
             blocks.append([start,end])
             start = i
-        previous_row = current_row
+        previous_row = current_row.copy()
     end = len(data) - 1
     blocks.append([start, end])
 
@@ -67,6 +75,7 @@ def constancy(values, threshold=0.5):
 #        return True
     values = np.array(values)
     z_scores = np.array(values - np.mean(values))/np.std(values)
+    print("z_scores", z_scores)
     z_max = np.max(z_scores)
     p = scipy.stats.norm.sf(abs(z_max))
     if p < threshold:
@@ -97,8 +106,11 @@ class Term( object ):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return str(self._definition) + ": " + str(self._values) + "\n"
 
-class Table( object ):
+
+class Table( pd.DataFrame ):
     
     """ Attributes:
         terms: a list of Term objects
@@ -113,7 +125,14 @@ class Table( object ):
         invent_variables
     """
 
+    _metadata = ['added_property'] # don't think we need this
+
+    @property
+    def _constructor(self):
+        return Table
+
     def __init__(self, terms=None, laws=None):
+        super().__init__()
         if terms == None:
             self._terms = []
         else:
@@ -226,28 +245,26 @@ class Table( object ):
 
         chart = build_chart(nominal_terms, quantitative_terms[0])
 
-        print(chart)
+        print("chart\n", chart)
 
-        blocks = find_blocks(chart[1])
+        blocks = find_blocks(chart)
 
         no_trends = True
         assignment = dict([])
 
         for block in blocks:
-            if no_trends == True:
-                print(block)
-                data = quantitative_terms[0]._values[block[0]:block[1]]
-                print(data)
-                if not constancy(data):
-                    no_trends = False
-                    # build key:
-                    for i in range(block[0],block[1]+1):
-                        key = nominal_terms[-1]._values[i]
-                        value = quantitative_terms[0]._values[i]
-                        assignment.update([(key,value)])
+            print("block", block)
+            data = quantitative_terms[0]._values[block[0]:block[1]]
+            print("data", data)
+            if not constancy(data):
+                # build key:
+                for i in range(block[0],block[1]+1):
+                    key = nominal_terms[-1]._values[i]
+                    value = quantitative_terms[0]._values[i]
+                    assignment.update([(key,value)])
                     
         if not len(assignment) == 0:
-            # build a new term (corresponing to new intrinsic property)
+            # build a new term (corresponding to new intrinsic property)
             new_values = []
             for qual in nominal_terms[-1]._values:
                 new_values.append(assignment[qual])
